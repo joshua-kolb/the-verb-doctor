@@ -1,7 +1,12 @@
 {
   "name": "the-verb-doctor",
-  "version": "0.0.1",
+  "version": "0.5.0",
   "description": "A card game that features humor intended for intelligent college students and the like.",
+  "license": "GPL-3.0",
+  "author": {
+  	"name": "Josh Kolb",
+  	"email": "jkolb8558@gmail.com"
+  },
   "dependencies": {
     "express": "^4.14.0",
     "socket.io": "^1.4.6"
