@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href="main.css" rel="stylesheet" type="text/css"/>
+  <script src="/socket.io/socket.io.js" type="text/javascript"></script>
+  <script src="client.js" type="text/javascript"></script>
+  <script src="CardAnimator.js" type="text/javascript"></script>
+</head>
+<body>
+  <div id="login-view" class="view">
+    <h1>Welcome!</h1>
+    <p>Enter your username below...</p>
+    <input id="username-textbox" type="text"/>
+    <input id="username-ok-button" type="button" value="OK"/>
+    <p id="login-notification" class="hidden"></p>
+  </div>
+  <div id="game-select-view" class="view hidden">
+    <h1>Game Selection</h1>
+    <input id="create-new-game-button" type="button" value="Create New Game"/>
+    <input id="refresh-game-list-button" type="button" value="Refresh Game List" />
+     <div id="game-list">
+      
+    </div>
+  </div>
+  <div id="game-create-view" class="view hidden">
+    <h1>Game Creation</h1>
+
+    <div class="row">
+    <label for="game-name-textbox">Name</label>
+    <input id="game-name-textbox" type="text"/>
+    </div>
+
+    <div class="row">
+    <label for="game-password-textbox">Password</label>
+    <input disabled id="game-password-textbox"/>
+    </div>
+
+    <div class="row">
+    <input id="game-create-ok-button" type="button" value="OK"/>
+    </div>
+
+    <p id="game-create-notification" class="hidden"></p>
+  </div>
+  <div id="player-view" class="view hidden">
+    <div id="player-situation-card" class="situation-card"></div>
+    <div id="noun-card-section" class="card-section nouns"></div>
+    <div id="verb-card-section" class="card-section verbs"></div>
+  </div>
+  <div id="decider-view" class="view hidden">
+    <div id="decider-header"></div>
+    <h2>Submissions</h2>
+    <hr/>
+    <div id="decider-submissions"></div>
+  </div>
+  <div id="waiting-view" class="view hidden">
+    <h1>Waiting for players to join...</h1>
+    <h2>Players</h2>
+    <ul id="waiting-player-list"></ul>
+    <input id="start-game-button" class="hidden" type="button" value="Start Game"/>
+  </div>
+  <div id="confirm-view" class="view half hidden">
+    <input id="confirm-button" class="big" type="button" value="Confirm"/>
+    <input id="back-button" class="big" type="button" value="Back"/>
+  </div>
+  <div id="between-rounds-view" class="view hidden">
+  </div>
+  <script type="text/javascript">
+    client.init();
+    CardAnimator.Init();
+  </script>
+</body>
+</html>

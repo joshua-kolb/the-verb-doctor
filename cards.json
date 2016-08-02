@@ -1,0 +1,72 @@
+{
+	"situationCards": [
+		{
+			"type": "situation",
+			"text": "When cleaning out my closet, I was surprised to find [noun] [verb]."
+		},
+		{
+			"type": "situation",
+			"text": "[noun] is/are never simply [verb]."
+		},
+		{
+			"type": "situation",
+			"text": "When camping, [noun] is/are always useful for [verb]."
+		}
+	],
+	"nounCards": [
+		{
+			"type": "noun",
+			"text": "your mom"
+		},
+		{
+			"type": "noun",
+			"text": "my GPA"
+		},
+		{
+			"type": "noun",
+			"text": "a grave filled with [noun]"
+		},
+		{
+			"type": "noun",
+			"text": "Harry Potter erotica"
+		},
+		{
+			"type": "noun",
+			"text": "Trump supporters"
+		},
+		{
+			"type": "noun",
+			"text": "Morovians"
+		}
+	],
+	"verbCards": [
+		{
+			"type": "verb",
+			"text": "fucking"
+		},
+		{
+			"type": "verb",
+			"text": "Texasing"
+		},
+		{
+			"type": "verb",
+			"text": "being high as a fucking kite"
+		},
+		{
+			"type": "verb",
+			"text": "nerd raging"
+		},
+		{
+			"type": "verb",
+			"text": "making it wierd"
+		},
+		{
+			"type": "verb",
+			"text": "trolling"
+		},
+		{
+			"type": "verb",
+			"text": "intending to tell everyone a short and succinct story, but getting completely sidetracked and telling ebarassing stories about childhood while everyone stares on in an akward combinationation of boredom and dissapointment until eventually foreggetting what the original topic was"
+		}
+	]
+}

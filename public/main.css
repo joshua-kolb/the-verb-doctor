@@ -1,0 +1,222 @@
+body {
+  background: #000000;
+  color: #ffffff;
+  font-family: Calibri,Open Sans;
+  font-size: 16px;
+  font-weight: bold;
+  width: 98%;
+}
+
+input[type=button] {
+  background: #000000;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  transition: background 0.3s;
+}
+
+  input[type=button]:hover {
+    background: #000066;
+  }
+
+  input.big {
+    height: 3.5em;
+    width: 9em;
+  }
+
+h2 {
+  margin-bottom: 0;
+}
+
+hr {
+  width: 80%;
+}
+
+.view {
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  transition: opacity 1s;
+  transition-delay: 1s;
+}
+
+.view p {
+  transition: opacity 1s;
+}
+
+.view.half {
+  top: 50%;
+  vertical-align: middle;
+  transition: opacity 1s;
+}
+
+.hidden {
+  z-index: 0;
+  opacity: 0;
+  transition-delay: 0s;
+}
+
+.game-tile {
+  background: #151515;
+  border: 1px solid #ffffff;
+  width: 10em;
+  height: 10em;
+  margin: 0.5em;
+  padding: 0.5em;
+  float: left;
+  transition: background 0.3s;
+}
+
+  .game-tile:hover {
+    background: #333333;
+  }
+
+  .game-tile h1 {
+    margin-top: 0;
+    font-size: 20px;
+  }
+
+  .game-tile div {
+    background: #000000;
+    font-size: 16px;
+    font-weight: normal;    
+    
+    height: 7.0em;
+    margin: 0;
+    padding: 0.2em;
+  }
+
+    .game-tile div h2 {
+      margin: 0 0 0 4px;
+      font-size: 16px;
+      text-align: left;
+      text-decoration: underline;
+    }
+
+    .game-tile div ul {
+      text-align: left;      
+      font-size: 14px;
+      margin: -0.9em 0.2em 0.2em 0.2em;
+      padding-left: 15px;
+    }
+
+    .game-tile div .started-status {
+      position: relative;
+      left: 2em;
+      top: -1.1em;
+    }
+
+.row {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+  .row label {
+    display: inline-block;
+    width: 7em;
+  }
+
+  .row input[type=button] {
+    width: 5em;
+  }
+
+.situation-card {
+  background: #ffffff;
+  color: #000000;
+  border: 3px solid #888888;
+  outline: 2px solid #333333;
+  min-height: 6em; 
+  width: 15em;
+  margin: auto;
+  margin-top: 1em;
+  padding: 0.5em;
+  text-align: left;
+  transition: outline 0.25s;
+}
+
+  .situation-card.clickable:hover {
+    outline-color: #ffffff;
+    cursor: pointer;
+  }
+
+span {
+  padding: 0em 1em 0em;
+  margin: 0.25em;
+  outline: 1px solid #cccccc;
+}
+
+span.noun {
+  background: #3366ff;
+  color: #ffffff;
+}
+
+span.verb {
+  background: #ff2222;
+  color: #ffffff;
+}
+
+span.bi-curious-noun {
+  background: #900080
+}
+
+.card-section {
+  width: 100%;
+  margin-top: 1em;
+  text-align: center;
+  z-index: 50;
+  /* These entries are to stop text selection. */
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none;   /* Chrome/Safari/Opera */
+    -khtml-user-select: none;    /* Konqueror */
+    -moz-user-select: none;      /* Firefox */
+    -ms-user-select: none;       /* Internet Explorer/Edge */
+    user-select: none;           /* Non-prefixed version, currently
+                                  * not supported by any browser */
+}
+
+.card {
+  background: #ffffff;
+  color: #000000;
+  min-height: 128px; 
+  width: 90px;
+  padding: 8px;
+  margin-left: 10px;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: left;
+  outline: 2px solid #333333;
+  transition: outline 0.25s;
+}
+
+  .card:hover {
+    outline-color: #ffffff;
+    cursor: pointer;
+  }
+
+  .nouns > .card {
+    border: 3px solid #3366ff;
+  }
+
+  .verbs > .card {
+    border: 3px solid #ff2222;
+  }
+
+@media (max-width: 400px) {
+  .card {
+    position: absolute;
+    float: left;
+    margin: 0;
+  }
+}
+
+
+
+
+
+
+
+
+
