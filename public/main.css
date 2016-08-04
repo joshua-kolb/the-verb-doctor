@@ -76,12 +76,12 @@ hr {
 
   .game-tile h1 {
     margin-top: 0;
-    font-size: 20px;
+    font-size: 1.25em;
   }
 
   .game-tile div {
     background: #000000;
-    font-size: 16px;
+    font-size: 1em;
     font-weight: normal;    
     
     height: 7.0em;
@@ -91,14 +91,14 @@ hr {
 
     .game-tile div h2 {
       margin: 0 0 0 4px;
-      font-size: 16px;
+      font-size: 1em;
       text-align: left;
       text-decoration: underline;
     }
 
     .game-tile div ul {
       text-align: left;      
-      font-size: 14px;
+      font-size: 1em;
       margin: -0.9em 0.2em 0.2em 0.2em;
       padding-left: 15px;
     }
@@ -180,10 +180,10 @@ span.bi-curious-noun {
 .card {
   background: #ffffff;
   color: #000000;
-  min-height: 128px; 
-  width: 90px;
-  padding: 8px;
-  margin-left: 10px;
+  min-height: 8.1em; 
+  width: 5.4em;
+  padding: 0.5em;
+  margin-left: 0.7em;
   display: inline-block;
   vertical-align: middle;
   text-align: left;
