@@ -12,6 +12,66 @@ var numberOfCardsInHand = 4;
 var clients = {};
 var games = {};
 
+function validatePlay(situationCard, cardsPlayed) {
+	var slots = getSlotsFromCard(situationCard);
+	// reverse it so we can treat it like a queue instead of a stack,
+	// still using the pop method.
+	slots.reverse();
+
+	var nounsPlayed = 0;
+	var verbsPlayed = 0;
+	for (var j = 0, jlen = cardsPlayed.length; j < jlen; ++j) {
+		var card = cardsPlayed[j];
+		card.text = sanitizeHtml(card.text);
+		if (!card.text) {
+			// Invalid play
+			console.log('Card did not sanitize properly')
+			return null;
+		}
+
+		var slot = slots.pop();
+		if (card.type === 'noun') {
+			++nounsPlayed;
+			if (slot !== 'noun' && slot !== 'bi') {
+				// Invalid play
+				console.log('No more noun slots.');
+				return null;
+			}
+		} else if (card.type === 'verb') {
+			++verbsPlayed;
+			if (slot !== 'verb' && slot !== 'bi') {
+				// Invalid play
+				console.log('No more verb slots.')
+				return null;
+			}
+		}
+		// The card may have been a chainer, so we need
+		// to add the extra slots from the card.
+		slots = slots.concat(getSlotsFromCard(card).reverse());
+	}
+
+	return {
+		nounsPlayed: nounsPlayed,
+		verbsPlayed: verbsPlayed
+	};
+}
+
+function getSlotsFromCard(card) {
+	var result = [];
+	card.text.split(' ').forEach(function (item, index) {
+		
+		if (/\[noun\]/g.test(item)) {
+			result.push('noun');
+		} else if (/\[verb\]/g.test(item)) {
+			result.push('verb');
+		} else if (/\[bi\]/g.test(item)) {
+			result.push('bi');
+		}
+		
+	});
+	return result;
+}
+
 app.use(express.static('public'));
 
 app.get('/', function (req, res) {
@@ -164,49 +224,13 @@ io.on('connection', function (socket) {
 
 	socket.on('submit-play', function (data) {
 		var game = socket.game;
-		var slots = getSlotsFromCard(game.currentSituation);
-		if (slots === null) {
-			// Someone is trying to hack us. Drop their connection.
-			socket.emit('disconnect');
-			delete clients[socket.username];
-		}
-		// reverse it so we can treat it like a queue instead of a stack,
-		// still using the pop method.
-		slots.reverse();
-
-		var nounsPlayed = 0;
-		var verbsPlayed = 0;
-		for (var j = 0, jlen = data.cardsPlayed.length; j < jlen; ++j) {
-			var card = data.cardsPlayed[j];
-			card.text = sanitizeHtml(card.text);
-			if (!card.text) {
-				// Invalid play
-				socket.emit('submit-play-response', {
-					success: false
-				});
-			}
-
-			var slot = slots.pop();
-			if (card.type === 'noun') {
-				++nounsPlayed;
-				if (slot !== 'noun' && slot !== 'bi') {
-					// Invalid play
-					socket.emit('submit-play-response', {
-						success: false
-					});
-				}
-			} else if (card.type === 'verb') {
-				++verbsPlayed;
-				if (slot !== 'verb' && slot !== 'bi') {
-					// Invalid play
-					socket.emit('submit-play-response', {
-						success: false
-					});
-				}
-			}
-			// The card may have been a chainer, so we need
-			// to add the extra slots from the card.
-			slots = slots.concat(getSlotsFromCard(card).reverse());
+		var count = validatePlay(game.currentSituation, data.cardsPlayed);
+		if (count === null) {
+			// Invalid play
+			socket.emit('submit-play-response', {
+				success: false
+			});
+			return;
 		}
 
 		for (var i = 0, ilen = game.players.length; i < ilen; ++i) {
@@ -218,8 +242,8 @@ io.on('connection', function (socket) {
 		} 
 		socket.emit('submit-play-response', {
 			success: true,
-			nouns: game.nounDeck.deal(nounsPlayed),
-			verbs: game.verbDeck.deal(verbsPlayed)
+			nouns: game.nounDeck.deal(count.nounsPlayed),
+			verbs: game.verbDeck.deal(count.verbsPlayed)
 		});
 		console.log(socket.username + ' has successfully subitted a play.');
 	});
@@ -230,10 +254,17 @@ io.on('connection', function (socket) {
 			return;
 		}
 
+		var count = validatePlay(game.currentSituation, data.cardsPlayed);
+		if (count === null) {
+			//TODO: Display error message
+			return;
+		}
+
 		game.players.forEach(function (item, index) {
 			clients[item].emit('winner-found', {
 				player: data.player,
-				card: data.card
+				cardsPlayed: data.cardsPlayed,
+				situation: game.currentSituation
 			});
 		});
 		console.log(data.player + ' has won a round in game ' + data.gameName);
@@ -261,25 +292,3 @@ io.on('connection', function (socket) {
 http.listen(8080, function () {
 	console.log('listening on *:8080');
 });
-
-function getSlotsFromCard(card) {
-	var result = [];
-	card.text.split(' ').forEach(function (item, index) {
-		switch(item) {
-			case '[noun]':
-				result.push('noun');
-				break;
-			case '[verb]':
-				result.push('verb');
-				break;
-			case '[bi]':
-				result.push('bi');
-				break;
-			default:
-				// This will only happen if someone is hacking us.
-				// Show them no mercy!!!
-				return null;
-		}
-	});
-	return result;
-}

@@ -14,6 +14,7 @@ var client = function (library) {
 	var isDecider = false;
 	var currentGameName = '';
 	var cardsToBePlayed = [];
+	var submittedPlays = {};
 	var submissionClicked = null;
 
 	// HTML elements
@@ -156,10 +157,11 @@ var client = function (library) {
 				return;
 			}
 
+			var winner = submissionClicked.getAttribute('data-player');
 			socket.emit('decide-winner', {
 				gameName: currentGameName,
-				player: submissionClicked.getAttribute('data-player'),
-				card: submissionClicked.outerHTML
+				player: winner,
+				cardsPlayed: submittedPlays[winner]
 			});	
 			confirmView.classList.add('hidden');
 		});
@@ -301,6 +303,10 @@ var client = function (library) {
 				);
 			});
 			if (isDecider) {
+				//Save the cards played for submitting to the server later
+				//when choosing the winner.
+				submittedPlays[data.player] = data.cardsPlayed;
+
 				var submissions = deciderSubmissions.children;
 				for (var i = 0, ilen = submissions.length; i < ilen; ++i) {
 					submissions[i].addEventListener('click', function(event) {
@@ -323,8 +329,18 @@ var client = function (library) {
 			deciderHeader.innerHTML = '';
 			deciderSubmissions.innerHTML = '';
 			betweenRoundsView.innerHTML = 
-			'<h1>' + data.player + ' won the round!</h1>' +
-			data.card;
+				'<h1>' + data.player + ' won the round!</h1>';
+			
+			betweenRoundsView.innerHTML += renderSituationCard(data.situation, data.player, isDecider);
+			var newSituationElement = betweenRoundsView.children[betweenRoundsView.children.length - 1];
+			data.cardsPlayed.forEach(function (item, index) {
+				insertPlayableCardIntoSituation(
+					convertCardTextToHTML(item.text),
+					item.type === 'noun',
+					newSituationElement
+				);
+			});
+
 			betweenRoundsView.classList.remove('hidden');
 
 			if (isDecider) {

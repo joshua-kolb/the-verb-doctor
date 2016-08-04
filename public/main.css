@@ -134,7 +134,7 @@ hr {
   margin-top: 1em;
   padding: 0.5em;
   text-align: left;
-  transition: outline 0.25s;
+  transition: outline 0.1s;
 }
 
   .situation-card.clickable:hover {
@@ -181,14 +181,14 @@ span.bi-curious-noun {
   background: #ffffff;
   color: #000000;
   min-height: 8.1em; 
-  width: 5.4em;
+  width: 5.6em;
   padding: 0.5em;
   margin-left: 0.7em;
   display: inline-block;
   vertical-align: middle;
   text-align: left;
   outline: 2px solid #333333;
-  transition: outline 0.25s;
+  transition: outline 0.1s;
 }
 
   .card:hover {
