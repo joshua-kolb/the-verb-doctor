@@ -195,8 +195,35 @@ var client = function (library) {
 
 		backButton.addEventListener('click', function(event) {
 			if (!isDecider) {
-				// TODO: take back last card selection
-				return;
+				// Remove cards from cards to be played, and render
+				// them back into the view
+				var nounReplaced = false;
+				var verbReplaced = false;
+				for (var i = 0, ilen = cardsToBePlayed.length; i < ilen; ++i) {
+					var card = cardsToBePlayed.pop();
+					if (card.type === 'noun') {
+						nounCardSection.innerHTML += renderPlayableCard(card);
+						nounReplaced = true;
+					} else {
+						verbCardSection.innerHTML += renderPlayableCard(card);
+						verbReplaced = true;
+					}
+				}
+
+				if (nounReplaced) {
+					wireUpCardsInCardSection(nounCardSection);
+				}
+
+				if (verbReplaced) {
+					wireUpCardsInCardSection(verbCardSection);
+				}
+
+				// Empty out the plays from the situation card
+				var spans = playerSituationCard.getElementsByTagName('span');
+				for (var i = 0, ilen = spans.length; i < ilen; ++i) {
+					spans[i].innerHTML = '';
+				}
+				
 			}
 
 			confirmView.classList.add('hidden');
@@ -496,16 +523,16 @@ var client = function (library) {
 		return result;
 	}
 
-	function renderPlayableCard(cardText) {
+	function renderPlayableCard(card) {
 		return '<div class="card">' +
-				convertCardTextToHTML(cardText) +
+				convertCardTextToHTML(card.text) +
 				'</div>';
 	}
 
 	function renderPlayableCards(cards) {
 		var result = '';
 		for (var i = 0, ilen = cards.length; i < ilen; ++i) {
-			result += renderPlayableCard(cards[i].text);
+			result += renderPlayableCard(cards[i]);
 		}
 		return result;
 	}
