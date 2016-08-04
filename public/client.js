@@ -451,13 +451,15 @@ var client = function (library) {
 			cards[i].addEventListener('click', function (event) {
 				var card = event.target;
 				cardsToBePlayed.push(convertHTMLToCard(card));
-				insertPlayableCardIntoSituation(
+				var success = insertPlayableCardIntoSituation(
 					card.innerHTML,
 					card.parentNode.id === 'noun-card-section',
 					playerSituationCard
 				);
-				// Remove card from the playfield
-				cardSection.removeChild(card);
+				if (success) {
+					// Remove card from the playfield
+					cardSection.removeChild(card);
+				}
 			});
 		}
 	}
@@ -470,12 +472,15 @@ var client = function (library) {
 			if (slots[i].innerHTML !== '') {
 				continue;
 			}
-			if (!inserted && ((slots[i].className === '') ||
+			if (!inserted && ((slots[i].className === 'bi-curious-noun') ||
 				(slots[i].className === 'noun' && isNoun) ||
 				(slots[i].className === 'verb' && !isNoun))) {
 
 				slots[i].innerHTML = cardText;
 				inserted = true;
+
+				slots = situationCardElement.getElementsByTagName('span');
+				ilen = slots.length;
 				continue;
 			}
 			emptySlotsLeft = true;
@@ -483,6 +488,7 @@ var client = function (library) {
 		if (situationCardElement === playerSituationCard && !emptySlotsLeft) {
 			confirmView.classList.remove('hidden');
 		}
+		return inserted;
 	}
 
 	function convertHTMLToCard(cardElement) {
