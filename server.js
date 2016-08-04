@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var sanitizeHtml = require('sanitize-html');
 var cards = require('./cards.json');
 var Deck = require('./Deck.js');
 
@@ -22,18 +23,29 @@ io.on('connection', function (socket) {
 
 	socket.on('login', function (data) {
 
-		if (clients[data.username] !== undefined) {
-			// Username is already taken
-			console.log('User attempted to log in with name "' + data.username + '", but it was already taken.');
+		var username = sanitizeHtml(data.username, {
+			allowedTags: [],
+			allowedAttributes: []
+		});
+
+		if (!username) {
+			console.log('User attempted to log in, but the username provided was invalid.');
 			socket.emit('login-response', { success: false });
 			return;
 		}
 
-		clients[data.username] = socket;
-		socket.username = data.username;
+		if (clients[username] !== undefined) {
+			// Username is already taken
+			console.log('User attempted to log in with name "' + username + '", but it was already taken.');
+			socket.emit('login-response', { success: false });
+			return;
+		}
+
+		clients[username] = socket;
+		socket.username = username;
 		socket.emit('login-response', { success: true, games: games });
 
-		console.log(data.username + ' logged in successfully.');
+		console.log(username + ' logged in successfully.');
 	});
 
 	socket.on('refresh-game-list', function (data) {
@@ -51,15 +63,27 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on('game-create', function (data) {
-		if (games[data.name] !== undefined) {
+
+		var name = sanitizeHtml(data.name, {
+			allowedTags: [],
+			allowedAttributes: []
+		});
+
+		if (!name) {
+			console.log('User attempted to create game with invalid name.');
+			socket.emit('game-create-response', { success: false });
+			return;
+		}
+
+		if (games[name] !== undefined) {
 			// Username is already taken
-			console.log('User attempted to create game with name "' + data.name + '", but it was already taken.');
+			console.log('User attempted to create game with name "' + name + '", but it was already taken.');
 			socket.emit('game-create-response', { success: false });
 			return;
 		}
 
 		var game = {
-			name: data.name,
+			name: name,
 			players: [ socket.username ],
 			started: false,
 			host: socket.username,
@@ -71,11 +95,11 @@ io.on('connection', function (socket) {
 			currentSituation: null,
 			firstRound: true
 		};
-		games[data.name] = game;
+		games[name] = game;
 		socket.game = game;
 
 		socket.emit('game-create-response', { success: true });
-		console.log(socket.username + ' successfully created a new game named ' + data.name);
+		console.log(socket.username + ' successfully created a new game named ' + name);
 	});
 
 	socket.on('join-game', function (data) {
@@ -111,11 +135,22 @@ io.on('connection', function (socket) {
 		game.deciderIndex = (game.deciderIndex + 1) % game.players.length;
 		game.started = true;
 		game.currentSituation = game.situationDeck.deal(1)[0];
+		game.currentSituation.text = sanitizeHtml(game.currentSituation.text);
 		for(var i = 0, ilen = game.players.length; i < ilen; ++i) {
+
+			var nouns = game.nounDeck.deal(numberOfCardsInHand);
+			var verbs = game.verbDeck.deal(numberOfCardsInHand);
+			nouns.forEach(function (card) {
+				card.text = sanitizeHtml(card.text);
+			});
+			verbs.forEach(function (card) {
+				card.text = sanitizeHtml(card.text);
+			});
+
 			clients[game.players[i]].emit('game-started', {
 				decider: game.players[game.deciderIndex],
-				nouns: game.nounDeck.deal(numberOfCardsInHand),
-				verbs: game.verbDeck.deal(numberOfCardsInHand),
+				nouns: nouns,
+				verbs: verbs,
 				situation: game.currentSituation,
 				firstRound: game.firstRound
 			});
@@ -143,6 +178,14 @@ io.on('connection', function (socket) {
 		var verbsPlayed = 0;
 		for (var j = 0, jlen = data.cardsPlayed.length; j < jlen; ++j) {
 			var card = data.cardsPlayed[j];
+			card.text = sanitizeHtml(card.text);
+			if (!card.text) {
+				// Invalid play
+				socket.emit('submit-play-response', {
+					success: false
+				});
+			}
+
 			var slot = slots.pop();
 			if (card.type === 'noun') {
 				++nounsPlayed;

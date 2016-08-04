@@ -2,7 +2,7 @@ body {
   background: #000000;
   color: #ffffff;
   font-family: Calibri,Open Sans;
-  font-size: 16px;
+  font-size: 1em;
   font-weight: bold;
   width: 98%;
 }
@@ -203,20 +203,3 @@ span.bi-curious-noun {
   .verbs > .card {
     border: 3px solid #ff2222;
   }
-
-@media (max-width: 400px) {
-  .card {
-    position: absolute;
-    float: left;
-    margin: 0;
-  }
-}
-
-
-
-
-
-
-
-
-
