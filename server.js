@@ -170,6 +170,11 @@ io.on('connection', function (socket) {
 		}
 
 		var game = games[data.gameName];
+		if (game.password) {
+			socket.emit('join-game-challenge');
+			return;
+		}
+
 		game.players[game.players.length] = socket.username;
 		socket.game = game;
 
@@ -186,7 +191,35 @@ io.on('connection', function (socket) {
 			var player = game.players[i];
 			if (player !== socket.username) {
 				clients[player].emit('player-joined-game', { player: socket.username });
-			}			
+			}
+		}
+	});
+
+	socket.on('join-game-answer-challenge', function (data) {
+		var game = games[data.gameName];
+		if (game.password !== data.password) {
+			console.log('User attempted to join game, but gave the wrong password.');
+			socket.emit('join-game-response', { success: false });
+			return;
+		}
+
+		game.players[game.players.length] = socket.username;
+		socket.game = game;
+
+		socket.emit('join-game-response', { 
+			success: true,
+			waiting: !game.started,
+			players: game.players,
+			host: game.host
+		});
+
+		console.log(socket.username + ' successfully joined game "' + data.gameName + '".');
+
+		for (var i = 0, ilen = game.players.length; i < ilen; ++i) {
+			var player = game.players[i];
+			if (player !== socket.username) {
+				clients[player].emit('player-joined-game', { player: socket.username });
+			}
 		}
 	});
 

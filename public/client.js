@@ -18,33 +18,36 @@ var client = function (library) {
 	var submissionClicked = null;
 
 	// HTML elements
-	var loginView              = null;
-	var usernameTextbox        = null;
-	var usernameOkButton       = null;
-	var loginNotification      = null;
-	var gameSelectView         = null;
-	var createNewGameButton    = null;
-	var refreshGameListButton  = null;
-	var gameList               = null;
-	var gameCreateView         = null;
-	var gameNameTextbox        = null;
-	var gamePasswordTextbox    = null;
-	var gameCreateOkButton     = null;
-	var gameCreateNotification = null;
-	var playerView             = null;
-	var playerSituationCard    = null;
-	var nounCardSection        = null;
-	var verbCardSection        = null;
-	var deciderView            = null;
-	var deciderHeader          = null;
-	var deciderSubmissions     = null;
-	var waitingView            = null;
-	var waitingPlayerList      = null;
-	var startGameButton        = null;
-	var betweenRoundsView      = null;
-	var confirmView            = null;
-	var confirmButton          = null;
-	var backButton             = null;
+	var loginView                    = null;
+	var usernameTextbox              = null;
+	var usernameOkButton             = null;
+	var loginNotification            = null;
+	var gameSelectView               = null;
+	var createNewGameButton          = null;
+	var refreshGameListButton        = null;
+	var gameList                     = null;
+	var gameChallengeView            = null;
+	var gameChallengePasswordTextbox = null;
+	var gameChallengeOkButton        = null;
+	var gameCreateView               = null;
+	var gameNameTextbox              = null;
+	var gamePasswordTextbox          = null;
+	var gameCreateOkButton           = null;
+	var gameCreateNotification       = null;
+	var playerView                   = null;
+	var playerSituationCard          = null;
+	var nounCardSection              = null;
+	var verbCardSection              = null;
+	var deciderView                  = null;
+	var deciderHeader                = null;
+	var deciderSubmissions           = null;
+	var waitingView                  = null;
+	var waitingPlayerList            = null;
+	var startGameButton              = null;
+	var betweenRoundsView            = null;
+	var confirmView                  = null;
+	var confirmButton                = null;
+	var backButton                   = null;
 
 	function init() {
 		initializeHtmlElements();
@@ -55,33 +58,36 @@ var client = function (library) {
 	}
 
 	function initializeHtmlElements() {
-		loginView              = document.getElementById('login-view');
-		usernameTextbox        = document.getElementById('username-textbox');
-		usernameOkButton       = document.getElementById('username-ok-button');
-		loginNotification      = document.getElementById('login-notification');
-		gameSelectView         = document.getElementById('game-select-view');
-		createNewGameButton    = document.getElementById('create-new-game-button');
-		refreshGameListButton  = document.getElementById('refresh-game-list-button');
-		gameList               = document.getElementById('game-list');
-		gameCreateView         = document.getElementById('game-create-view');
-		gameNameTextbox        = document.getElementById('game-name-textbox');
-		gamePasswordTextbox    = document.getElementById('game-password-textbox');
-		gameCreateOkButton     = document.getElementById('game-create-ok-button');
-		gameCreateNotification = document.getElementById('game-create-notification');
-		playerView             = document.getElementById('player-view');
-		playerSituationCard    = document.getElementById('player-situation-card');
-		nounCardSection        = document.getElementById('noun-card-section');
-		verbCardSection        = document.getElementById('verb-card-section');
-		deciderView            = document.getElementById('decider-view');
-		deciderHeader          = document.getElementById('decider-header');
-		deciderSubmissions     = document.getElementById('decider-submissions');
-		waitingView            = document.getElementById('waiting-view');
-		waitingPlayerList      = document.getElementById('waiting-player-list');
-		startGameButton        = document.getElementById('start-game-button');
-		betweenRoundsView      = document.getElementById('between-rounds-view');
-		confirmView            = document.getElementById('confirm-view');
-		confirmButton          = document.getElementById('confirm-button');
-		backButton             = document.getElementById('back-button');
+		loginView                    = document.getElementById('login-view');
+		usernameTextbox              = document.getElementById('username-textbox');
+		usernameOkButton             = document.getElementById('username-ok-button');
+		loginNotification            = document.getElementById('login-notification');
+		gameSelectView               = document.getElementById('game-select-view');
+		createNewGameButton          = document.getElementById('create-new-game-button');
+		refreshGameListButton        = document.getElementById('refresh-game-list-button');
+		gameList                     = document.getElementById('game-list');
+		gameChallengeView            = document.getElementById('game-challenge-view');
+		gameChallengePasswordTextbox = document.getElementById('game-challenge-password-textbox');
+		gameChallengeOkButton        = document.getElementById('game-challenge-ok-button');
+		gameCreateView               = document.getElementById('game-create-view');
+		gameNameTextbox              = document.getElementById('game-name-textbox');
+		gamePasswordTextbox          = document.getElementById('game-password-textbox');
+		gameCreateOkButton           = document.getElementById('game-create-ok-button');
+		gameCreateNotification       = document.getElementById('game-create-notification');
+		playerView                   = document.getElementById('player-view');
+		playerSituationCard          = document.getElementById('player-situation-card');
+		nounCardSection              = document.getElementById('noun-card-section');
+		verbCardSection              = document.getElementById('verb-card-section');
+		deciderView                  = document.getElementById('decider-view');
+		deciderHeader                = document.getElementById('decider-header');
+		deciderSubmissions           = document.getElementById('decider-submissions');
+		waitingView                  = document.getElementById('waiting-view');
+		waitingPlayerList            = document.getElementById('waiting-player-list');
+		startGameButton              = document.getElementById('start-game-button');
+		betweenRoundsView            = document.getElementById('between-rounds-view');
+		confirmView                  = document.getElementById('confirm-view');
+		confirmButton                = document.getElementById('confirm-button');
+		backButton                   = document.getElementById('back-button');
 	}
 
 	function setUpHtmlElementEvents() {
@@ -97,6 +103,27 @@ var client = function (library) {
 			loginNotification.classList.add('hidden');
 			username = usernameTextbox.value;
 			socket.emit('login', { username: usernameTextbox.value });
+		});
+
+		gameChallengePasswordTextbox.addEventListener('keyup', function (event) {
+			if (event.keyCode == 13) {
+				// The enter key was pressed
+				socket.emit('join-game-answer-challenge', { 
+					gameName: currentGameName,
+					password: gameChallengePasswordTextbox.value 
+				});
+				gameChallengePasswordTextbox.blur();
+				gameChallengeView.classList.add('hidden');
+			}
+		});
+
+		gameChallengeOkButton.addEventListener('click', function(event) {
+			socket.emit('join-game-answer-challenge', { 
+				gameName: currentGameName,
+				password: gameChallengePasswordTextbox.value 
+			});
+			gameChallengePasswordTextbox.blur();
+			gameChallengeView.classList.add('hidden');
 		});
 
 		createNewGameButton.addEventListener('click', function(event) {
@@ -201,7 +228,11 @@ var client = function (library) {
 			wireUpGameTiles();
 		});
 
-		socket.on('join-game-response', function(data) {
+		socket.on('join-game-challenge', function (data) {
+			gameChallengeView.classList.remove('hidden');
+		});
+
+		socket.on('join-game-response', function (data) {
 			if (!data.success) {
 				//Display error message
 				return;
@@ -210,7 +241,6 @@ var client = function (library) {
 			isHost = false;
 
 			if (data.waiting) {
-				gameSelectView.classList.add('hidden');
 				waitingView.classList.remove('hidden');
 
 				var markup = '';
@@ -383,6 +413,7 @@ var client = function (library) {
 				var gameName = this.children[0].innerHTML;
 				currentGameName = gameName;
 				socket.emit('join-game', { gameName: gameName });
+				gameSelectView.classList.add('hidden');
 			});
 		}
 	}
