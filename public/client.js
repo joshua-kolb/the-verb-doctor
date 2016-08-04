@@ -467,9 +467,9 @@ var client = function (library) {
 		}
 
 		var text = cardElement.innerHTML
-			.replace(/<span class="noun"><\/span>/g, '[noun]')
-			.replace(/<span class="verb"><\/span>/g, '[verb]')
-			.replace(/<span class="bi-curious-noun"><\/span>/g, '[bi]');
+			.replace(/<span class="noun">.*<\/span>/g, '[noun]')
+			.replace(/<span class="verb">.*<\/span>/g, '[verb]')
+			.replace(/<span class="bi-curious-noun">.*<\/span>/g, '[bi]');
 
 		return { 
 			text: text,
