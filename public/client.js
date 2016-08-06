@@ -479,13 +479,18 @@ var client = function (library) {
 				slots[i].innerHTML = cardText;
 				inserted = true;
 
+				// In the case of a chainer, we have more slots.
 				slots = situationCardElement.getElementsByTagName('span');
 				ilen = slots.length;
 				continue;
 			}
 			emptySlotsLeft = true;
 		}
-		if (situationCardElement === playerSituationCard && !emptySlotsLeft) {
+		var noMorePlayableVerbs = verbCardSection.children.length === 1 && !isNoun;
+		var noMorePlayableNouns = nounCardSection.children.length === 1 && isNoun;
+		if (situationCardElement === playerSituationCard && 
+			(!emptySlotsLeft || noMorePlayableVerbs || noMorePlayableNouns)) {
+			
 			confirmView.classList.remove('hidden');
 		}
 		return inserted;

@@ -12,7 +12,7 @@ var numberOfCardsInHand = 4;
 var clients = {};
 var games = {};
 
-function validatePlay(situationCard, cardsPlayed) {
+function validatePlay(situationCard, cardsPlayed, nounDeck, verbDeck) {
 	var slots = getSlotsFromCard(situationCard);
 	// reverse it so we can treat it like a queue instead of a stack,
 	// still using the pop method.
@@ -24,35 +24,90 @@ function validatePlay(situationCard, cardsPlayed) {
 		var card = cardsPlayed[j];
 		card.text = sanitizeHtml(card.text);
 		if (!card.text) {
-			// Invalid play
 			console.log('Card did not sanitize properly')
 			return null;
 		}
 
-		var slot = slots.pop();
+		var slot;
+		if (slots.length <= 0) {
+			console.log('Too many cards playd.');
+			return null;
+			
+		}
+
+		slot = slots.pop();	
+
 		if (card.type === 'noun') {
 			++nounsPlayed;
 			if (slot !== 'noun' && slot !== 'bi') {
-				// Invalid play
-				console.log('No more noun slots.');
-				return null;
+				if (!slots.find(function(item) { item === 'noun' }) &&
+					!slots.find(function(item) { item === 'bi' })) {
+					console.log('No more noun slots.');
+					return null;
+				}
+				// skip this slot
+				--j;
 			}
 		} else if (card.type === 'verb') {
 			++verbsPlayed;
 			if (slot !== 'verb' && slot !== 'bi') {
-				// Invalid play
-				console.log('No more verb slots.')
-				return null;
+				if (!slots.find(function(item) { item === 'verb' }) &&
+					!slots.find(function(item) { item === 'bi' })) {
+
+					console.log('No more verb slots.')
+					return null;
+				}
+				// skip this slot
+				--j;
 			}
 		}
+
 		// The card may have been a chainer, so we need
 		// to add the extra slots from the card.
 		slots = slots.concat(getSlotsFromCard(card).reverse());
 	}
 
+	var extraCards = [];
+	if (slots.length > 0) {
+		// The player didn't have enough cards in his hand to finish the
+		// play (this can happen sometimes with chainers). So, deal
+		// random cards to finish the play.
+		for (var i = 0, ilen = slots.length; i < ilen; ++i) {
+			var slot = slots.pop();
+
+			var card;
+			switch (slot) {
+				case 'bi':
+					if (Math.random() < 0.5) {
+						card = nounDeck.deal(1)[0];
+					} else {
+						card = verbDeck.deal(1)[0];
+					}
+					break;
+				case 'noun':
+					card = nounDeck.deal(1)[0];
+					break;
+				case 'verb':
+					card = verbDeck.deal(1)[0];
+					break;
+				default:
+					break;
+			}
+			extraCards.push(card);
+
+			var extraSlots = getSlotsFromCard(card);
+			// I know, super edge case, but if the random card dealt
+			// ends up being a chainer too, we need to deal another
+			// random card.
+			slots = slots.concat(extraSlots.reverse());
+			ilen += extraSlots.length;
+		}
+	}
+
 	return {
 		nounsPlayed: nounsPlayed,
-		verbsPlayed: verbsPlayed
+		verbsPlayed: verbsPlayed,
+		extraCards: extraCards
 	};
 }
 
@@ -249,15 +304,23 @@ io.on('connection', function (socket) {
 			});
 		}
 		if (game.firstRound) {
+			console.log('Game ' + game.name + ' has been successfully started.');
 			game.firstRound = false;
+		} else {
+			console.log('Game ' + game.name + ' has successfully started a new round.');
 		}
 		games[data.name] = game;
-		console.log('Game ' + game.name + ' has been successfully started.');
+		
 	});
 
 	socket.on('submit-play', function (data) {
 		var game = socket.game;
-		var count = validatePlay(game.currentSituation, data.cardsPlayed);
+		var count = validatePlay(
+			game.currentSituation, 
+			data.cardsPlayed, 
+			game.nounDeck, 
+			game.verbDeck
+		);
 		if (count === null) {
 			// Invalid play
 			socket.emit('submit-play-response', {
@@ -265,6 +328,8 @@ io.on('connection', function (socket) {
 			});
 			return;
 		}
+
+		data.cardsPlayed = data.cardsPlayed.concat(count.extraCards);
 
 		for (var i = 0, ilen = game.players.length; i < ilen; ++i) {
 			clients[game.players[i]].emit('play-submitted', {
