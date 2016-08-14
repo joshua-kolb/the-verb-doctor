@@ -310,7 +310,8 @@ var client = function (library) {
 				waiting = true;
 			}
 
-			
+			reconnecting = false;
+			onGameStart(data.handData);
 		});
 
 		socket.on('player-joined-game', function(data) {
@@ -336,35 +337,7 @@ var client = function (library) {
 			currentGameName = gameNameTextbox.value;
 		});
 
-		socket.on('game-started', function(data) {
-			if (data.firstRound) {
-				waitingView.classList.add('hidden');
-
-				// put cards into the view...
-				nounCardSection.innerHTML = renderPlayableCards(data.nouns);
-				wireUpCardsInCardSection(nounCardSection);
-				verbCardSection.innerHTML = renderPlayableCards(data.verbs);
-				wireUpCardsInCardSection(verbCardSection);
-			} else {
-				betweenRoundsView.classList.add('hidden');
-			}
-
-			if(data.decider === username) {
-				isDecider = true;
-				deciderHeader.innerHTML = 
-					'<h1>You are the Decider</h1>' +
-					renderSituationCard(data.situation);
-				deciderView.classList.remove('hidden');
-				return;
-			}
-			
-			isDecider = false;
-			deciderHeader.innerHTML = 
-				'<h1>' + data.decider + ' is the Decider<h1>';	
-
-			playerSituationCard.innerHTML = convertCardTextToHTML(data.situation.text);
-			playerView.classList.remove('hidden');
-		});
+		socket.on('game-started', onGameStart);
 
 		socket.on('submit-play-response', function(data) {
 			if (!data.success) {
@@ -437,6 +410,36 @@ var client = function (library) {
 				}, displayWinnerTime);
 			}
 		});
+	}
+
+	function onGameStart(data) {
+		if (data.firstRound) {
+			waitingView.classList.add('hidden');
+
+			// put cards into the view...
+			nounCardSection.innerHTML = renderPlayableCards(data.nouns);
+			wireUpCardsInCardSection(nounCardSection);
+			verbCardSection.innerHTML = renderPlayableCards(data.verbs);
+			wireUpCardsInCardSection(verbCardSection);
+		} else {
+			betweenRoundsView.classList.add('hidden');
+		}
+
+		if(data.decider === username) {
+			isDecider = true;
+			deciderHeader.innerHTML = 
+				'<h1>You are the Decider</h1>' +
+				renderSituationCard(data.situation);
+			deciderView.classList.remove('hidden');
+			return;
+		}
+		
+		isDecider = false;
+		deciderHeader.innerHTML = 
+			'<h1>' + data.decider + ' is the Decider<h1>';	
+
+		playerSituationCard.innerHTML = convertCardTextToHTML(data.situation.text);
+		playerView.classList.remove('hidden');
 	}
 
 	function renderGameTiles(games) {

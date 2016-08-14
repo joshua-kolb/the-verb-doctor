@@ -127,6 +127,50 @@ function getSlotsFromCard(card) {
 	return result;
 }
 
+function addPlayerToGame(socket, game) {
+
+	socket.game = game;
+	game.players[game.players.length] = socket.username;
+
+	var responseData = { 
+		success: true,
+		waiting: !game.started,
+		players: game.players,
+		host: game.host
+	};
+
+	if (game.started) {
+
+		var nouns = game.nounDeck.deal(numberOfCardsInHand);
+		var verbs = game.verbDeck.deal(numberOfCardsInHand);
+		nouns.forEach(function (card) {
+			card.text = sanitizeHtml(card.text);
+		});
+		verbs.forEach(function (card) {
+			card.text = sanitizeHtml(card.text);
+		});
+
+		responseData.handData = {
+			decider: game.players[game.deciderIndex],
+			nouns: nouns,
+			verbs: verbs,
+			situation: game.currentSituation,
+			firstRound: true
+		};
+	}
+
+	socket.emit('join-game-response', responseData);
+
+	console.log(socket.username + ' successfully joined game "' + game.name + '".');
+
+	for (var i = 0, ilen = game.players.length; i < ilen; ++i) {
+		var player = game.players[i];
+		if (player !== socket.username) {
+			clients[player].emit('player-joined-game', { player: socket.username });
+		}
+	}
+}
+
 app.use(express.static('public'));
 
 app.get('/', function (req, res) {
@@ -230,24 +274,7 @@ io.on('connection', function (socket) {
 			return;
 		}
 
-		game.players[game.players.length] = socket.username;
-		socket.game = game;
-
-		socket.emit('join-game-response', { 
-			success: true,
-			waiting: !game.started,
-			players: game.players,
-			host: game.host
-		});
-
-		console.log(socket.username + ' successfully joined game "' + data.gameName + '".');
-
-		for (var i = 0, ilen = game.players.length; i < ilen; ++i) {
-			var player = game.players[i];
-			if (player !== socket.username) {
-				clients[player].emit('player-joined-game', { player: socket.username });
-			}
-		}
+		addPlayerToGame(socket, game);
 	});
 
 	socket.on('join-game-answer-challenge', function (data) {
@@ -258,24 +285,7 @@ io.on('connection', function (socket) {
 			return;
 		}
 
-		game.players[game.players.length] = socket.username;
-		socket.game = game;
-
-		socket.emit('join-game-response', { 
-			success: true,
-			waiting: !game.started,
-			players: game.players,
-			host: game.host
-		});
-
-		console.log(socket.username + ' successfully joined game "' + data.gameName + '".');
-
-		for (var i = 0, ilen = game.players.length; i < ilen; ++i) {
-			var player = game.players[i];
-			if (player !== socket.username) {
-				clients[player].emit('player-joined-game', { player: socket.username });
-			}
-		}
+		addPlayerToGame(socket, game);
 	});
 
 	socket.on('start-game', function (data) {
