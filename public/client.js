@@ -13,9 +13,11 @@ var client = function (library) {
 	var isHost = false;
 	var isDecider = false;
 	var currentGameName = '';
+	var currentGamePassword = '';
 	var cardsToBePlayed = [];
 	var submittedPlays = {};
 	var submissionClicked = null;
+	var reconnecting = false;
 
 	// HTML elements
 	var loginView                    = null;
@@ -118,9 +120,10 @@ var client = function (library) {
 		});
 
 		gameChallengeOkButton.addEventListener('click', function(event) {
+			currentGamePassword = gameChallengePasswordTextbox.value;
 			socket.emit('join-game-answer-challenge', { 
 				gameName: currentGameName,
-				password: gameChallengePasswordTextbox.value 
+				password: currentGamePassword
 			});
 			gameChallengePasswordTextbox.blur();
 			gameChallengeView.classList.add('hidden');
@@ -231,6 +234,23 @@ var client = function (library) {
 	}
 
 	function setUpSocketEvents() {
+		socket.on('reconnect', function() {
+			if (!username) {
+				return;
+			}
+
+			socket.emit('login', { username: username });
+
+			if (!currentGameName) {				
+				return;
+			}
+
+			reconnecting = true;
+			window.setTimeout(function () {
+				socket.emit('join-game', { gameName: currentGameName });
+			}, 2000);
+		});
+
 		socket.on('login-response', function(data) {
 			if (!data.success) {
 				loginNotification.innerHTML = 'That username has already been chosen. Please choose another.';
@@ -256,10 +276,18 @@ var client = function (library) {
 		});
 
 		socket.on('join-game-challenge', function (data) {
-			gameChallengeView.classList.remove('hidden');
+			if (!reconnecting) {
+				gameChallengeView.classList.remove('hidden');
+			}
+			
+			socket.emit('join-game-answer-challenge', { 
+				gameName: currentGameName,
+				password: currentGamePassword
+			});
 		});
 
 		socket.on('join-game-response', function (data) {
+			reconnecting = false;
 			if (!data.success) {
 				//Display error message
 				return;
@@ -282,6 +310,7 @@ var client = function (library) {
 				waiting = true;
 			}
 
+			
 		});
 
 		socket.on('player-joined-game', function(data) {
@@ -450,6 +479,12 @@ var client = function (library) {
 		for (var i = 0, ilen = cards.length; i < ilen; ++i) {
 			cards[i].addEventListener('click', function (event) {
 				var card = event.target;
+				// Find the actual card element by looping up through
+				// the target's parent elements. This is because the target could
+				// potentially be a span.
+				while (!card.classList.contains('card')) {
+					card = card.parentNode;
+				}
 				cardsToBePlayed.push(convertHTMLToCard(card));
 				var success = insertPlayableCardIntoSituation(
 					card.innerHTML,
@@ -467,12 +502,14 @@ var client = function (library) {
 	function insertPlayableCardIntoSituation(cardText, isNoun, situationCardElement) {
 		var emptySlotsLeft = false;
 		var inserted = false;
+		var isNextEmptySlot = true;
 		var slots = situationCardElement.getElementsByTagName('span');
 		for (var i = 0, ilen = slots.length; i < ilen; ++i) {
 			if (slots[i].innerHTML !== '') {
 				continue;
 			}
-			if (!inserted && ((slots[i].className === 'bi-curious-noun') ||
+			if (!inserted && isNextEmptySlot &&
+				((slots[i].className === 'bi-curious-noun') ||
 				(slots[i].className === 'noun' && isNoun) ||
 				(slots[i].className === 'verb' && !isNoun))) {
 
@@ -484,6 +521,7 @@ var client = function (library) {
 				ilen = slots.length;
 				continue;
 			}
+			isNextEmptySlot = false;
 			emptySlotsLeft = true;
 		}
 		var noMorePlayableVerbs = verbCardSection.children.length === 1 && !isNoun;
