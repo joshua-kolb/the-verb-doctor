@@ -333,6 +333,7 @@ io.on('connection', function (socket) {
 		);
 		if (count === null) {
 			// Invalid play
+			console.log('play submission was unsuccessful.');
 			socket.emit('submit-play-response', {
 				success: false
 			});

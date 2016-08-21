@@ -483,6 +483,7 @@ var client = function (library) {
 				while (!card.classList.contains('card')) {
 					card = card.parentNode;
 				}
+				cardsToBePlayed.push(convertHTMLToCard(card));
 				var success = insertPlayableCardIntoSituation(
 					card.innerHTML,
 					card.parentNode.id === 'noun-card-section',
@@ -491,8 +492,9 @@ var client = function (library) {
 				if (success) {
 					// Remove card from the playfield,
 					// and add it to be submitted
-					cardSection.removeChild(card);
-					cardsToBePlayed.push(convertHTMLToCard(card));
+					cardSection.removeChild(card);					
+				} else {
+					cardsToBePlayed.pop();
 				}
 			});
 		}
