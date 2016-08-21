@@ -8,6 +8,7 @@ var client = function (library) {
 
 	// private variables
 	var socket = null;
+	var currentView = null;
 	var username = '';
 	var waiting = false;
 	var isHost = false;
@@ -57,6 +58,7 @@ var client = function (library) {
 
 		socket = io();
 		setUpSocketEvents();
+		currentView = loginView;
 	}
 
 	function initializeHtmlElements() {
@@ -96,6 +98,7 @@ var client = function (library) {
 		usernameTextbox.addEventListener('keyup', function(event) {
 			if (event.keyCode == 13) {
 				// The enter key was pressed
+				loginNotification.classList.add('hidden');
 				socket.emit('login', { username: usernameTextbox.value });
 				username = usernameTextbox.value;
 			}
@@ -115,7 +118,6 @@ var client = function (library) {
 					password: gameChallengePasswordTextbox.value 
 				});
 				gameChallengePasswordTextbox.blur();
-				gameChallengeView.classList.add('hidden');
 			}
 		});
 
@@ -126,12 +128,10 @@ var client = function (library) {
 				password: currentGamePassword
 			});
 			gameChallengePasswordTextbox.blur();
-			gameChallengeView.classList.add('hidden');
 		});
 
 		createNewGameButton.addEventListener('click', function(event) {
-			gameSelectView.classList.add('hidden');
-			gameCreateView.classList.remove('hidden');
+			openView(gameCreateView);
 		});
 
 		refreshGameListButton.addEventListener('click', function(event) {
@@ -181,9 +181,8 @@ var client = function (library) {
 					cardsPlayed: cardsToBePlayed
 				});
 				cardsToBePlayed = [];
-				playerView.classList.add('hidden');
 				confirmView.classList.add('hidden');
-				deciderView.classList.remove('hidden');
+				openView(deciderView);
 				return;
 			}
 
@@ -239,31 +238,31 @@ var client = function (library) {
 				return;
 			}
 
-			socket.emit('login', { username: username });
-
-			if (!currentGameName) {				
-				return;
-			}
-
 			reconnecting = true;
-			window.setTimeout(function () {
-				socket.emit('join-game', { gameName: currentGameName });
-			}, 2000);
+			socket.emit('login', { username: username });
 		});
 
 		socket.on('login-response', function(data) {
 			if (!data.success) {
 				loginNotification.innerHTML = 'That username has already been chosen. Please choose another.';
 				loginNotification.classList.remove('hidden');
+				openView(loginView);
 				return;
+			}
+
+			if (reconnecting) {
+				if (currentGameName) {
+					socket.emit('join-game', { gameName: currentGameName });			
+					return;
+				}
+				reconnecting = false;		
 			}
 
 			gameList.innerHTML = renderGameTiles(data.games);
 			wireUpGameTiles();
 			
 			usernameTextbox.blur();
-			loginView.classList.add('hidden');
-			gameSelectView.classList.remove('hidden');
+			openView(gameSelectView);
 		});
 
 		socket.on('refresh-game-list-response', function (data) {
@@ -277,7 +276,7 @@ var client = function (library) {
 
 		socket.on('join-game-challenge', function (data) {
 			if (!reconnecting) {
-				gameChallengeView.classList.remove('hidden');
+				openView(gameChallengeView);
 			}
 			
 			socket.emit('join-game-answer-challenge', { 
@@ -287,16 +286,20 @@ var client = function (library) {
 		});
 
 		socket.on('join-game-response', function (data) {
-			reconnecting = false;
+			if (reconnecting) {
+				reconnecting = false;
+			}
+
 			if (!data.success) {
 				//Display error message
+				openView(gameSelectView);
 				return;
 			}
 
 			isHost = false;
 
 			if (data.waiting) {
-				waitingView.classList.remove('hidden');
+				openView(waitingView);
 
 				var markup = '';
 				for (var i = 0, ilen = data.players.length; i < ilen; ++i) {
@@ -310,7 +313,6 @@ var client = function (library) {
 				waiting = true;
 			}
 
-			reconnecting = false;
 			onGameStart(data.handData);
 		});
 
@@ -329,8 +331,7 @@ var client = function (library) {
 				gameCreateNotification.classList.remove('hidden');
 				return;
 			}			
-			gameCreateView.classList.add('hidden');
-			waitingView.classList.remove('hidden');
+			openView(waitingView);
 			waitingPlayerList.innerHTML = '<li>' + username + ' (Host)</li>';
 			waiting = true;
 			isHost = true;
@@ -384,7 +385,6 @@ var client = function (library) {
 		});
 
 		socket.on('winner-found', function (data) {
-			deciderView.classList.add('hidden');
 			deciderHeader.innerHTML = '';
 			deciderSubmissions.innerHTML = '';
 			betweenRoundsView.innerHTML = 
@@ -400,7 +400,7 @@ var client = function (library) {
 				);
 			});
 
-			betweenRoundsView.classList.remove('hidden');
+			openView(betweenRoundsView);
 
 			if (isDecider) {
 				window.setTimeout(function () {
@@ -414,15 +414,11 @@ var client = function (library) {
 
 	function onGameStart(data) {
 		if (data.firstRound) {
-			waitingView.classList.add('hidden');
-
 			// put cards into the view...
 			nounCardSection.innerHTML = renderPlayableCards(data.nouns);
 			wireUpCardsInCardSection(nounCardSection);
 			verbCardSection.innerHTML = renderPlayableCards(data.verbs);
 			wireUpCardsInCardSection(verbCardSection);
-		} else {
-			betweenRoundsView.classList.add('hidden');
 		}
 
 		if(data.decider === username) {
@@ -430,7 +426,7 @@ var client = function (library) {
 			deciderHeader.innerHTML = 
 				'<h1>You are the Decider</h1>' +
 				renderSituationCard(data.situation);
-			deciderView.classList.remove('hidden');
+			openView(deciderView);
 			return;
 		}
 		
@@ -439,7 +435,7 @@ var client = function (library) {
 			'<h1>' + data.decider + ' is the Decider<h1>';	
 
 		playerSituationCard.innerHTML = convertCardTextToHTML(data.situation.text);
-		playerView.classList.remove('hidden');
+		openView(playerView);
 	}
 
 	function renderGameTiles(games) {
@@ -472,7 +468,6 @@ var client = function (library) {
 				var gameName = this.children[0].innerHTML;
 				currentGameName = gameName;
 				socket.emit('join-game', { gameName: gameName });
-				gameSelectView.classList.add('hidden');
 			});
 		}
 	}
@@ -488,15 +483,16 @@ var client = function (library) {
 				while (!card.classList.contains('card')) {
 					card = card.parentNode;
 				}
-				cardsToBePlayed.push(convertHTMLToCard(card));
 				var success = insertPlayableCardIntoSituation(
 					card.innerHTML,
 					card.parentNode.id === 'noun-card-section',
 					playerSituationCard
 				);
 				if (success) {
-					// Remove card from the playfield
+					// Remove card from the playfield,
+					// and add it to be submitted
 					cardSection.removeChild(card);
+					cardsToBePlayed.push(convertHTMLToCard(card));
 				}
 			});
 		}
@@ -587,6 +583,12 @@ var client = function (library) {
 			result += renderPlayableCard(cards[i]);
 		}
 		return result;
+	}
+
+	function openView(view) {
+		currentView.classList.add('hidden');
+		view.classList.remove('hidden');
+		currentView = view;
 	}
 
 	return {
