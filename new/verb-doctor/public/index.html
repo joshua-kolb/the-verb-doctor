@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=0.5, maximum-scale=1.0" />
+  <link href="stylesheets/main.css" rel="stylesheet" type="text/css"/>
+  <script src="/socket.io/socket.io.js" type="text/javascript"></script>
+  <script src="javascripts/angularApp.js" type="text/javascript"></script>
+</head>
+<body>
+
+  <div>
+    <ui-view></ui-view>
+  </div>
+
+  <script type="text/ng-template" id="/login.html">
+    <form ng-submit="login()">
+      <h1>Welcome!</h1>
+      <p>Enter your username below...</p>
+      <input type="text" ng-model="username"/>
+      <button type="submit">OK</button>
+      <p ng-show="error">{{error.message}}</p>
+    </form>
+  </script>
+
+  <script type="text/ng-template" id="/games/select.html">
+    <h1>Game Selection</h1>
+    <a class="btn" href="/#/games/create">Create New Game</a>
+    <button>Refresh Game List</button>
+    <div ng-repeat="game in games">
+      <div class="game-tile" ng-click="joinGame(game._id)">
+        <h1>{{game.name}}</h1>
+        <h2>Players</h2>
+        <ul>
+          <li ng-repeat="player in game.players">
+            {{player.username}} <span ng-show="player.isHost">(Host)</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="/games/challenge.html">
+    <form>
+      <h1>Enter the Password for this Private Game</h1>
+      <input type="password" ng-model="password"/>
+      <button type="submit">OK</button>
+    </form>
+  </script>
+
+  <script type="text/ng-template" id="/games/create.html">
+    <form>
+      <h1>Game Creation</h1>
+
+      <div class="row">
+        <label for="game-name-textbox">Name</label>
+        <input id="game-name-textbox" type="text"/>
+      </div>
+
+      <div class="row">
+        <label for="game-password-textbox">Password</label>
+        <input id="game-password-textbox"/>
+      </div>
+
+      <div class="row">
+        <input id="game-create-ok-button" type="button" value="OK"/>
+      </div>
+
+      <p ng-show="error">{{error.message}}</p>
+    </form>
+  </script>
+
+  <script type="text/ng-template" id="/games/waiting.html">
+    <h1>Waiting for players to join...</h1>
+    <h2>Players</h2>
+    <ul>
+      <li ng-repeat="player in players">{{player.username}}<span ng-show="player.isHost">(Host)</span></li>
+    </ul>
+    <button ng-show="players.length > 1" ng-click="startGame()">
+      Start Game
+    </button>
+  </script>
+
+  <script type="text/ng-template" id="/player.html">
+    <div class="situation-card">
+      {{situationCard.text}}
+    </div>
+    <div class="card-section nouns">
+      <div class="card" ng-repeat="nounCard in nounCards">
+        {{nounCard.text}}
+      </div>
+    </div>
+    <div class="card-section verbs">
+      <div class="card" ng-repeat="verbCard in verbCards">
+        {{verbCard.text}}
+      </div>
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="/decider.html">
+    <h1>
+      <span ng-show="user.isDecider">You are</span>
+      <span ng-hide="user.isDecider">{{decider}} is</span> 
+      the Decider
+    </h1>
+    <div class="situation-card">
+      {{situationCard.text}}
+    </div>
+    <h2>Submissions</h2>
+    <hr/>
+    <div data-player="{{submission.player.username}}" class="situation-card clickable" ng-repeat="submission in submissions">
+      {{submission.text}}
+    </div>
+  </script>
+
+  <script type="text/ng-template" id="/betweenRounds.html">
+    <h1>{{player.username}} won the round!</h1>
+  </script>
+
+</body>
+</html>
